@@ -1,46 +1,15 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
-#include <time.h>
+#include "../letsTimeIt.h"
+#include "../labVector.h"
 
-#define DT 0.5
+#define DT 0.05
 #define EPS 1e-10
-#define MAX_FILE_NAME sizeof("./results/1000000_Points")
-
-typedef struct
-{
-    double x, y;
-} vector;
+#define MAX_FILE_NAME sizeof("./results/1000000_Points_10000_Timesteps")
 
 int bodies, timeSteps;
 double *masses, GravConstant;
 vector *positions, *velocities, *accelerations;
-
-vector addVectors(vector a, vector b)
-{
-    vector c = {a.x + b.x, a.y + b.y};
-
-    return c;
-}
-
-vector scaleVector(double b, vector a)
-{
-    vector c = {b * a.x, b * a.y};
-
-    return c;
-}
-
-vector subtractVectors(vector a, vector b)
-{
-    vector c = {a.x - b.x, a.y - b.y};
-
-    return c;
-}
-
-double mod(vector a)
-{
-    return sqrt(a.x * a.x + a.y * a.y);
-}
 
 void initiateSystem(char *fileName)
 {
@@ -120,7 +89,8 @@ int main(int argC, char *argV[])
     int i, j;
     FILE *f = fopen("output", "w");
 
-    double time = 0;
+    timing time;
+    initiateTiming(&time);
     int retryTimes = 5;
 
     if (argC != 2)
@@ -130,7 +100,8 @@ int main(int argC, char *argV[])
         for (int retryNum = 0; retryNum < retryTimes; ++retryNum){
             initiateSystem(argV[1]);
 
-            clock_t begin = clock();
+            startTime(&time);
+
             fprintf(f, "Body   :     x              y           vx              vy   ");
             for (i = 0; i < timeSteps; i++)
             {
@@ -140,18 +111,17 @@ int main(int argC, char *argV[])
                     fprintf(f, "Body %d : %lf\t%lf\t%lf\t%lf\n", j + 1, positions[j].x, positions[j].y, velocities[j].x, velocities[j].y);
             }
 
-            clock_t end = clock();
-            time += (double)(end - begin);
+            endTime(&time);
             
             destructSystem();
         }
 
         char fName[MAX_FILE_NAME];
-        sprintf(fName, "./results/%d_Points", bodies);
+        sprintf(fName, "./results_%d/%d_Timesteps", bodies, timeSteps);
         
         FILE *resF = fopen(fName, "w");
         
-        fprintf(resF, "%lf", time / retryTimes);
+        fprintf(resF, "%lf", result(time));
 
         fclose(resF);
     }

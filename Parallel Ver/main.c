@@ -2,18 +2,13 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdio.h>
-#include <math.h>
-#include <time.h>
+#include "../letsTimeIt.h"
+#include "../labVector.h"
 
 #define DT 0.05
 #define EPS 1e-10
 #define l long
-#define MAX_FILE_NAME sizeof("./results/1000000_Points_100_Threads")
-
-typedef struct
-{
-    double x, y;
-} vector;
+#define MAX_FILE_NAME sizeof("./results_1000000/10000_Timesteps_100_Threads")
 
 int thread_count = 0;
 int threadsToPrint = 0;
@@ -26,32 +21,6 @@ int bodies, timeSteps;
 double *masses, GravConstant;   
 vector *positions, *velocities, *accelerations;
 vector *new_positions, *new_velocities, *new_accelerations;
-
-vector addVectors(vector a, vector b)
-{
-    vector c = {a.x + b.x, a.y + b.y};
-
-    return c;
-}
-
-vector scaleVector(double b, vector a)
-{
-    vector c = {b * a.x, b * a.y};
-
-    return c;
-}
-
-vector subtractVectors(vector a, vector b)
-{
-    vector c = {a.x - b.x, a.y - b.y};
-
-    return c;
-}
-
-double mod(vector a)
-{
-    return sqrt(a.x * a.x + a.y * a.y);
-}
 
 void initiateSystem(char *fileName)
 {
@@ -86,6 +55,19 @@ void destructSystem(){
     free(accelerations);
 }
 
+void initiatePThread(){
+    pthread_barrier_init(&barrier, NULL, thread_count);
+    sem_init(&prePrint, 0, 0);
+    sem_init(&postPrint, 0, 0);
+    pthread_mutex_init(&blockPrint, NULL);
+}
+
+void destructPThread(){
+    pthread_barrier_destroy(&barrier);
+    pthread_mutex_destroy(&blockPrint);
+    sem_destroy(&prePrint);
+    sem_destroy(&postPrint);
+}
 
 void computeAccelerations(int st, int en)
 {
@@ -111,13 +93,11 @@ void computeAccelerations(int st, int en)
         }
 }
 
-
 void computePositions(int st, int en)
 {
     for (int i = st; i < en; i++)
         new_positions[i] = addVectors(positions[i], scaleVector(DT, velocities[i]));   
 }
-
 
 void computeVelocities(int st, int en)
 {
@@ -171,7 +151,8 @@ int main(int argC, char *argV[])
     l i, j;
     FILE *f = fopen("output", "w");
 
-    double time = 0;
+    timing time;
+    initiateTiming(&time);
     int retryTimes = 5;
 
     if (argC != 3)
@@ -179,18 +160,14 @@ int main(int argC, char *argV[])
     else
     {
         for (int retryNum = 0; retryNum < retryTimes; ++retryNum){
-            initiateSystem(argV[1]);
-            
             thread_count = strtol(argV[2], NULL, 10);
+
+            initiateSystem(argV[1]);
+            initiatePThread();
+
             pthread_t* pthread_handles = malloc(thread_count * sizeof(pthread_t));
-            pthread_barrier_init(&barrier, NULL, thread_count);
-
-            sem_init(&prePrint, 0, 0);
-            sem_init(&postPrint, 0, 0);
-
-            pthread_mutex_init(&blockPrint, NULL);
             
-            clock_t begin = clock();
+            startTime(&time);
             fprintf(f, "Body   :     x              y           vx              vy   ");
 
             for (l i = 0; i < thread_count; ++i) {
@@ -210,21 +187,18 @@ int main(int argC, char *argV[])
                 pthread_join(pthread_handles[i], NULL);
             }
 
-            clock_t end = clock();
-            time += (double)(end - begin);
+            endTime(&time);
 
-            pthread_barrier_destroy(&barrier);
-            pthread_mutex_destroy(&blockPrint);
-            sem_destroy(&prePrint);
-            sem_destroy(&postPrint);
+            destructPThread();
+            destructSystem();      
         }
         
         char fName[MAX_FILE_NAME];
-        sprintf(fName, "./results/%d_Points_%d_Threads", bodies, thread_count);
+        sprintf(fName, "./results_%d/timeSteps_%d/%d_Threads", bodies, timeSteps, thread_count);
         
         FILE *resF = fopen(fName, "w");
         
-        fprintf(resF, "%lf", time / retryTimes);
+        fprintf(resF, "%lf", result(time));
 
         fclose(resF);
     }

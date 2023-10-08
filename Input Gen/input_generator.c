@@ -5,8 +5,8 @@
 int main(){
     FILE* f = fopen("gen_input", "w");
 
-    int pointNum = 1000;
-    int timeSteps = 1000;
+    int pointNum = 100;
+    int timeSteps = 100;
 
     fprintf(f, "6.6743e-11 %d %d\n", pointNum, timeSteps);
 
