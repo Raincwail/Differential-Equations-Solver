@@ -87,17 +87,19 @@ void simulate()
 int main(int argC, char *argV[])
 {
     int i, j;
-    FILE *f = fopen("output", "w");
 
     timing time;
     initiateTiming(&time);
     int retryTimes = 5;
 
-    if (argC != 2)
+    if (argC != 2){
+        FILE *f = fopen("output", "w");
         fprintf(f, "Usage : %s <file name containing system configuration data>", argV[0]);
+    }
     else
     {
         for (int retryNum = 0; retryNum < retryTimes; ++retryNum){
+            FILE *f = fopen("output", "w");
             initiateSystem(argV[1]);
 
             startTime(&time);
@@ -114,6 +116,7 @@ int main(int argC, char *argV[])
             endTime(&time);
             
             destructSystem();
+            fclose(f);
         }
 
         char fName[MAX_FILE_NAME];
@@ -126,7 +129,6 @@ int main(int argC, char *argV[])
         fclose(resF);
     }
 
-    fclose(f);
     
     return 0;
 }

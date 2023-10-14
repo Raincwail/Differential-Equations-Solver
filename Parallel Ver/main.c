@@ -149,19 +149,20 @@ void* simulate(void* rank)
 int main(int argC, char *argV[])
 {
     l i, j;
-    FILE *f = fopen("output", "w");
 
     timing time;
     initiateTiming(&time);
     int retryTimes = 5;
 
-    if (argC != 3)
+    if (argC != 3){
+        FILE *f = fopen("output", "w");
         fprintf(f, "Usage : %s <file name containing system configuration data>", argV[0]);
-    else
+    } else
     {
         for (int retryNum = 0; retryNum < retryTimes; ++retryNum){
             thread_count = strtol(argV[2], NULL, 10);
 
+            FILE *f = fopen("output", "w");
             initiateSystem(argV[1]);
             initiatePThread();
 
@@ -190,7 +191,8 @@ int main(int argC, char *argV[])
             endTime(&time);
 
             destructPThread();
-            destructSystem();      
+            destructSystem();
+            fclose(f);
         }
         
         char fName[MAX_FILE_NAME];
@@ -203,7 +205,5 @@ int main(int argC, char *argV[])
         fclose(resF);
     }
     
-    fclose(f);
-
     return 0;
 }

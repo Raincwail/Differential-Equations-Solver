@@ -6,14 +6,14 @@ int main(){
     FILE* f = fopen("gen_input", "w");
 
     int pointNum = 100;
-    int timeSteps = 100;
+    int timeSteps = 20000;
 
     fprintf(f, "6.6743e-11 %d %d\n", pointNum, timeSteps);
 
     srand(time(NULL));   
     for (int i = 0; i < pointNum; ++i){
         int mass = rand() % 1000000;
-        int posX = rand() % 10, posY = rand() % 10;
+        int posX = rand() % 100, posY = rand() % 100;
 
         fprintf(f, "%d\n%d %d\n0 0\n", mass, posX, posY);
     } 
