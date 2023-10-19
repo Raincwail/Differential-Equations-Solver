@@ -21,8 +21,9 @@ $t$ $x1$ $y1$ $x2$ $y2$ $. . .$ $xn$ $yn$
 Оба варианта гарантировано приводят к детерменированному решению.
 
 Общие операции над векторами вынесены в заголовок [labVector](https://github.com/Raincwail/Differential-Equations-Solver/blob/master/labVector.h).
-
 Операция замера времени вынесена в заголовок [letsTimeIt](https://github.com/Raincwail/Differential-Equations-Solver/blob/master/letsTimeIt.h).
+
+Все замеры были проведены на базе процессора Intel(R) Core(TM) i5-8300H CPU @ 2.30GHz.
 
 Над обеими версиями были проведены эксперименты:
 * 100 тел движущиеся в течение 100, 10000 и 10000 шагов
